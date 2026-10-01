@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 REM ============================================================
 REM  windows-mcp deploy script for the CONTROLLED Windows PC
 REM  (PC Interconnect: an AI agent on another PC controls this
@@ -15,8 +15,11 @@ REM    1809+ (built-in bsdtar). Fallbacks: ghproxy/GitHub and
 REM    aliyun/pypi.org indexes.
 REM
 REM  Usage:
-REM    install_windows_mcp.bat [port] [auth_key]
+REM    install_windows_mcp.bat [port] [auth_key] [tailscale_auth_key]
 REM    Defaults: port 8808, key auto-generated (printed at the end)
+REM    3rd arg (optional): Tailscale auth key from
+REM    https://login.tailscale.com/admin/settings/keys - joins the
+REM    tailnet fully automatically (no browser) at the end of setup.
 REM
 REM  What it does (NO admin rights required; firewall wants admin once):
 REM    - Register a per-user Run-key autostart serving 0.0.0.0
@@ -34,6 +37,7 @@ if "%PORT%"=="" set PORT=8808
 set "KEY=%~2"
 if "%KEY%"=="" for /f %%i in ('powershell -NoProfile -Command "[guid]::NewGuid().ToString('N')"') do set "KEY=%%i"
 set "SRVARGS=--transport streamable-http --host 0.0.0.0 --port %PORT% --auth-key %KEY%"
+set "TSKEY=%~3"
 set "ROOT=%LOCALAPPDATA%\WindowsMCP"
 set "PY=%ROOT%\python\python.exe"
 
@@ -154,15 +158,44 @@ if errorlevel 1 (
     echo   Firewall rule added. Rollback: netsh advfirewall firewall delete rule name="windows-mcp-%PORT%"
 )
 
-echo Tailscale check (cross-network access) ...
+echo.
+echo Tailscale setup (cross-network: reachable from ANY network, not just this LAN) ...
 set "PATH=%PATH%;C:\Program Files\Tailscale"
 set "TSIP="
 for /f "tokens=*" %%i in ('tailscale ip -4 2^>nul') do if not defined TSIP set "TSIP=%%i"
-if defined TSIP (
-    echo   Tailscale detected - this PC is reachable from ANYWHERE at %TSIP%
+if defined TSIP goto ts_done
+if "%TSKEY%"=="" (
+    set "TSANS="
+    set /p "TSANS=  Set up Tailscale now so the controller can reach this PC from anywhere? [y/N] "
 ) else (
-    echo   Same-LAN only for now. For access from ANYWHERE also run:
-    echo     install_tailscale.bat
+    set "TSANS=y"
+)
+if /i not "!TSANS!"=="y" (
+    echo   Skipped. Run install_tailscale.bat later for cross-network access.
+    goto ts_done
+)
+if not exist "C:\Program Files\Tailscale\tailscale.exe" (
+    echo   Installing Tailscale via winget - ONE admin prompt will appear ...
+    winget install --id tailscale.tailscale -e --accept-source-agreements --accept-package-agreements
+    if errorlevel 1 (
+        echo   [WARN] winget failed - download manually: https://tailscale.com/download
+        goto ts_done
+    )
+)
+if not "%TSKEY%"=="" (
+    echo   Joining the tailnet with the provided auth key ...
+    "C:\Program Files\Tailscale\tailscale.exe" up --auth-key "%TSKEY%"
+) else (
+    echo   A browser will open - sign in with the SAME account as the controller PC ...
+    "C:\Program Files\Tailscale\tailscale.exe" login
+)
+:ts_done
+set "TSIP="
+for /f "tokens=*" %%i in ('tailscale ip -4 2^>nul') do if not defined TSIP set "TSIP=%%i"
+if defined TSIP (
+    echo   Tailscale ready - this PC is reachable from ANYWHERE at %TSIP%
+) else (
+    echo   No Tailscale - controller must be on the same LAN for now.
 )
 
 timeout /t 3 >nul

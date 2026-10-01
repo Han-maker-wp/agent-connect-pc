@@ -35,7 +35,7 @@ Across networks, wrap with Tailscale (WireGuard-encrypted, free) — no public I
 **Option A — offline install (recommended: zero network, zero dependencies)**
 
 1. From the [Releases](https://github.com/Han-maker-wp/pc-interconnect/releases) page download `windows-mcp-server.exe` (~56 MB single file with an embedded Python runtime) and put it in the **same folder** as `install_windows_mcp.bat` (USB stick / file transfer, whatever works)
-2. On the controlled PC double-click `install_windows_mcp.bat` — **no internet, no uv/Python install, no admin** (only the firewall step wants an admin terminal once)
+2. On the controlled PC double-click `install_windows_mcp.bat` — **no internet, no uv/Python install, no admin** (only the firewall and the optional Tailscale setup want an admin prompt / login each); the script asks at the end whether to set up Tailscale cross-network (see section 3)
 3. Note the PORT and AUTH KEY printed on screen
 
 **Option B — online install (when you only have the bat)**
@@ -90,7 +90,7 @@ The two PCs just need internet access — same Wi-Fi not required, no public IP 
 
 **Controlled PC** (after step 1):
 
-1. Double-click `install_tailscale.bat` → auto-install (one UAC prompt) → a browser opens for sign-in (any GitHub / Google / Microsoft account)
+1. **Built in**: `install_windows_mcp.bat` asks "Set up Tailscale now?" before finishing — answer `y` to auto-install (one UAC prompt) and sign in via the browser (any GitHub / Google / Microsoft account); or run the standalone `install_tailscale.bat` later, or pass an Auth Key as the 3rd arg for full auto: `install_windows_mcp.bat <port> <key> <tailscale-auth-key>`
 2. The script prints this machine's **Tailscale IP (100.x.x.x)** at the end — send it along with PORT and KEY
 
 **Controller PC**: install [Tailscale](https://tailscale.com/download) and sign in with the **same account**, then replace `<controlled-PC-IP>` with the `100.x.x.x` address everywhere.

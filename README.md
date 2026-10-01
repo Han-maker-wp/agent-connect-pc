@@ -37,7 +37,7 @@ One-liner (EN): Let your AI coding agent (Claude Code / Codex / Cursor / OpenCod
 **方式一：离线安装（推荐——零网络、零依赖，适合环境不全的电脑）**
 
 1. 在 [Releases](https://github.com/Han-maker-wp/pc-interconnect/releases) 下载 `windows-mcp-server.exe`（约 56MB 单文件，内置 Python 运行时），与 `install_windows_mcp.bat` 放进**同一个文件夹**（U 盘 / 微信传文件均可）
-2. 在受控机上双击 `install_windows_mcp.bat`——**不联网、不装 uv/Python、无需管理员**（仅防火墙那一步需要管理员一次）
+2. 在受控机上双击 `install_windows_mcp.bat`——**不联网、不装 uv/Python、无需管理员**（仅防火墙和可选的 Tailscale 各需一次管理员/登录）；脚本结尾会询问是否一键配置 Tailscale 跨网络（见 ③）
 3. 抄下屏幕上的 PORT 和 AUTH KEY
 
 **方式二：在线安装（只有 bat 时）**
@@ -92,7 +92,7 @@ python scripts/test_mcp_http_handshake.py http://<受控机IP>:8808/mcp --auth-k
 
 **受控端**（装完 ① 后）：
 
-1. 双击 `install_tailscale.bat` → 自动安装（一次 UAC 弹窗）→ 弹浏览器登录（GitHub / Google / 微软任一账号）
+1. **已内置**：`install_windows_mcp.bat` 结束前会询问「Set up Tailscale now?」——输 `y` 即自动安装（一次 UAC）并弹浏览器登录（GitHub / Google / 微软任一账号）；也可单独双击 `install_tailscale.bat` 补装，或第三个参数传 Auth Key 全自动：`install_windows_mcp.bat <port> <key> <tailscale-auth-key>`
 2. 脚本最后会打印这台机器的 **Tailscale IP（100.x.x.x）**——把它和 PORT、KEY 一起发给控制端
 
 **控制端**：安装 [Tailscale](https://tailscale.com/download) 并登录**同一个账号**，之后把所有命令里的 `<受控机IP>` 换成对方的 `100.x.x.x` 即可。
