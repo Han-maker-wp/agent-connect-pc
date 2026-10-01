@@ -2,6 +2,8 @@
 
 English | [简体中文](README.md)
 
+> 🤖 AI agents (Claude Code / Codex / Cursor / ZCode…) working in this repo: read [AGENTS.md](AGENTS.md) first — the agent-facing operations manual: standard workflows, troubleshooting decision tree, security rules and engineering rules.
+
 **Let the AI agent on your PC securely control another Windows PC** — screenshots, clicks, keyboard input, files, PowerShell, the full set, all via MCP (Model Context Protocol).
 
 If you have used android-mcp + ADB to drive an Android phone, this is the **Windows PC edition** of the same idea — a one-click deploy kit for [windows-mcp](https://github.com/CursorTouch/Windows-MCP) (streamable HTTP) plus connection testers and ready-made client configs.

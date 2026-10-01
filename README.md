@@ -2,6 +2,8 @@
 
 [English](README.en.md) | 简体中文
 
+> 🤖 AI agent（Claude Code / Codex / Cursor / ZCode 等）在本仓库工作时请先读 [AGENTS.md](AGENTS.md)——面向 agent 的完整操作手册：标准工作流、故障决策树、安全红线与工程铁律。
+
 **让 PC 上的 AI agent 安全地操控另一台 Windows 电脑** —— 截图、点击、键盘输入、文件、PowerShell 全套，通过 MCP（Model Context Protocol）。
 
 One-liner (EN): Let your AI coding agent (Claude Code / Codex / Cursor / OpenCode / ZCode…) control another Windows PC over MCP — a one-click deploy kit for [windows-mcp](https://github.com/CursorTouch/Windows-MCP) (streamable HTTP) plus connection testers and ready-made client configs.
