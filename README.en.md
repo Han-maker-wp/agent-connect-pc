@@ -40,7 +40,7 @@ Across networks, wrap with Tailscale (WireGuard-encrypted, free) — no public I
 
 **Option B — online install (when you only have the bat)**
 
-The script installs uv via winget, then downloads windows-mcp 0.8.7 + Python 3.14 through the Tsinghua PyPI mirror and a GitHub acceleration mirror (works from China without a proxy, first run 1–3 min), adds the per-user autostart entry (Bearer auth, bound to `0.0.0.0`), starts the server immediately, and adds the firewall rule.
+The script downloads the official Python 3.14.7 runtime (python-build-standalone) straight from the **npmmirror CDN** (no GitHub involved), extracts it with the built-in bsdtar, installs windows-mcp from the **Tsinghua PyPI mirror** (Aliyun / pypi.org fallbacks), then adds the per-user autostart entry (Bearer auth, bound to `0.0.0.0`) and starts the server immediately. **No uv, no winget, no admin** — works from China without a VPN (needs Windows 10 1809+; first run ~1–2 min).
 
 > After every login a **minimized console window appears — that IS the server**. Closing it stops remote control (intentionally visible, so the machine owner stays in control at all times).
 
@@ -96,7 +96,7 @@ Want to try it locally first (no remote PC): double-click `run_local_server.bat`
 
 - **bat flashes/crashes with mojibake**: the bats in this repo are pure ASCII (safe on any codepage). If you edited one and got `'xxx' is not recognized as an internal or external command`, your bat was saved as UTF-8 with non-ASCII text — cmd parses batch files in the ANSI codepage (GBK on Chinese Windows). Keep bats pure ASCII
 - **What is that minimized console window after login**: the windows-mcp server itself (launched by the autostart entry). Keep it open = remote control allowed; close it = control stops immediately. Run `uninstall_windows_mcp.bat` to remove it entirely
-- **Online install stuck/slow on downloads**: since v0.2.0 the bat routes PyPI through the Tsinghua mirror and the Python runtime download through a GitHub acceleration mirror (works from China without a proxy); but the most reliable path is **Option A's offline exe**, which skips downloads entirely
+- **Online install stuck/slow on downloads**: since v0.3.0 the online install rides China CDNs end to end — the Python runtime comes from npmmirror (ghproxy/GitHub only as fallbacks) and pip packages from the Tsinghua mirror (Aliyun/pypi.org fallbacks), so it works **without a VPN**; the most reliable path is still **Option A's offline exe**, which skips downloads entirely
 - **Agent goes blind when the PC is locked** (black screenshots / clicks do nothing): Windows GUI automation needs an active desktop session. Set the controlled PC to "never turn off display + auto logon"; note that an RDP disconnect locks the session
 - **UAC elevation prompts**: the agent cannot click the secure desktop — keep elevation steps human-confirmed
 - **Clash/proxy users**: if the agent cannot reach the controlled PC, add its IP to the `NO_PROXY` env of the MCP client config (don't touch system proxy variables)

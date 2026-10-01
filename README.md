@@ -42,7 +42,7 @@ One-liner (EN): Let your AI coding agent (Claude Code / Codex / Cursor / OpenCod
 
 **方式二：在线安装（只有 bat 时）**
 
-脚本自动装 uv（winget）→ 经**清华 PyPI 镜像 + GitHub 加速镜像**下载 windows-mcp 0.8.7 + Python 3.14（国内无代理也能走通，首次 1–3 分钟）→ 写入用户级启动项（含 Bearer 认证，绑定 `0.0.0.0`）并立即启动 → 加防火墙规则。
+脚本从 **npmmirror CDN** 直接下载官方 Python 3.14.7 运行时（python-build-standalone，不经 GitHub）→ 系统自带 bsdtar 解压 → 从**清华 PyPI 镜像**安装 windows-mcp（阿里、官方源自动回退）→ 写入用户级启动项（含 Bearer 认证，绑定 `0.0.0.0`）并立即启动。**全程不需要 uv、winget、管理员**，国内无代理可走通（要求 Win10 1809+，首次约 1–2 分钟）。
 
 > 每次登录后会出现一个**最小化的 windows-mcp 控制台窗口——那就是受控服务本体**，关掉它就停止远程受控（故意保持可见，设备主人随时知情、随时可断）。
 
@@ -98,7 +98,7 @@ python scripts/test_mcp_http_handshake.py http://<受控机IP>:8808/mcp --auth-k
 
 - **双击 bat 闪退/乱码**：本仓库的 bat 全部是纯 ASCII（任何代码页都不会碎）。如果你自己改出了乱码（`'xxx' 不是内部或外部命令`），是 bat 被存成了 UTF-8 带中文——cmd 用 GBK 解析批处理，改回 ASCII 即可
 - **登录后弹出的最小化控制台窗口是什么**：是 windows-mcp 服务本体（启动项拉起的）。保持它开着=允许远程受控；关掉=立即停止受控。想彻底移除跑 `uninstall_windows_mcp.bat`
-- **在线安装下载卡住/慢**：v0.2.0 起 bat 自动走清华 PyPI 镜像 + GitHub 加速镜像（ghproxy），国内无代理也能走通；但最稳的是**方式一离线包**，彻底绕开下载环节
+- **在线安装下载卡住/慢**：v0.3.0 起在线安装全程走国内 CDN——Python 运行时来自 npmmirror（ghproxy/GitHub 仅作回退），pip 包走清华源（阿里/官方回退），**无梯子也能走通**；最稳的仍是**方式一离线包**，彻底绕开下载环节
 - **锁屏后 agent 失明**（截图黑屏/点击无效）：Windows GUI 自动化需要活跃桌面会话。受控机设置「电源永不熄屏 + 自动登录」，RDP 断开会锁屏，注意错开
 - **UAC 提权弹窗**：agent 无法点击安全桌面，提权类操作请人工确认
 - **Clash/代理用户**：agent 连不上受控机时，把受控机 IP 加进客户端 MCP 配置的 `NO_PROXY`（别改系统代理变量）

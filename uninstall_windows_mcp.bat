@@ -6,7 +6,7 @@ REM  To stop the CURRENTLY RUNNING server, just close its console
 REM  window (titled "windows-mcp server").
 REM  Usage: uninstall_windows_mcp.bat [port]   (default port 8808)
 REM ============================================================
-set PORT=%1
+set "PORT=%~1"
 if "%PORT%"=="" set PORT=8808
 
 echo Removing autostart Run key "WindowsMCP" ...
@@ -20,6 +20,8 @@ if errorlevel 1 (echo   Rule not removed (not found, or needs an ADMIN terminal)
 echo.
 echo If a "windows-mcp server" console window is open, close it to stop
 echo the running server.
-echo Optional deep clean: uv cache clean windows-mcp
+echo To free ~400 MB of program files, also run:
+echo   rd /s /q "%LOCALAPPDATA%\WindowsMCP"
+echo Optional deep clean: none needed.
 echo Uninstall done.
 pause
