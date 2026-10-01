@@ -54,6 +54,11 @@ if exist "%~dp0dist\windows-mcp-server.exe" copy /y "%~dp0dist\windows-mcp-serve
 >> "%OUTDIR%\install_on_target.bat" echo rem All settings are baked in - nothing to type or copy.
 >> "%OUTDIR%\install_on_target.bat" echo call "%%~dp0install_windows_mcp.bat" %PORT% %BEARER% %TSKEY%
 
+REM Self-contained repair script (winget -> CDN MSI fallback, key embedded)
+if exist "%~dp0fix_tailscale_template.bat" (
+    powershell -NoProfile -Command "(Get-Content '%~dp0fix_tailscale_template.bat') -replace '__TSKEY__','%TSKEY%' | Set-Content '%OUTDIR%\fix_tailscale.bat'"
+)
+
 > "%~dp0my-targets\%NAME%.env" echo PORT=%PORT%
 >> "%~dp0my-targets\%NAME%.env" echo BEARER=%BEARER%
 >> "%~dp0my-targets\%NAME%.env" echo TSKEY=%TSKEY%

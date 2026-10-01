@@ -10,3 +10,5 @@ dist/
 windows-mcp-server.exe
 my-targets/
 target-*/
+
+*.zip
