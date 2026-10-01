@@ -49,10 +49,16 @@ def main():
     token = load_token()
 
     body = json.dumps({
-        "reusable": False,   # 单次使用：装完即废，泄露无忧
-        "ephemeral": False,  # 设备长期保留在 tailnet
-        "expirySeconds": args.expiry_days * 86400,
         "description": "pc-interconnect " + args.name,
+        "expirySeconds": args.expiry_days * 86400,
+        "capabilities": {
+            "devices": {
+                "create": {
+                    "reusable": False,   # 单次使用：装完即废，泄露无忧
+                    "ephemeral": False,  # 设备长期保留在 tailnet
+                }
+            }
+        },
     }).encode("utf-8")
     req = urllib.request.Request(API, data=body, headers={
         "Content-Type": "application/json",
