@@ -148,10 +148,13 @@ taskkill /F /FI "WINDOWTITLE eq windows-mcp server*" >nul 2>nul
 start "windows-mcp server" /min "%~dp0windows-mcp-server.exe" serve %SRVARGS%
 
 :firewall
-echo Firewall rule for TCP %PORT% (needs admin; skip if Tailscale-only) ...
-netsh advfirewall firewall add rule name="windows-mcp-%PORT%" dir=in action=allow protocol=TCP localport=%PORT% >nul 2>nul
+echo Firewall rule for TCP %PORT% - ONE admin prompt will appear (click Yes) ...
+> "%TEMP%\wsmcp_fw.cmd" echo netsh advfirewall firewall add rule name="windows-mcp-%PORT%" dir=in action=allow protocol=TCP localport=%PORT%
+powershell -NoProfile -Command "Start-Process -FilePath \"$env:TEMP\wsmcp_fw.cmd\" -Verb RunAs -Wait" >nul 2>nul
+del "%TEMP%\wsmcp_fw.cmd" >nul 2>nul
+netsh advfirewall firewall show rule name="windows-mcp-%PORT%" >nul 2>nul
 if errorlevel 1 (
-    echo   [INFO] No admin rights - firewall rule NOT added. Run once in an
+    echo   [INFO] Rule NOT added (UAC declined or no admin). Run once in an
     echo   ADMIN terminal:
     echo     netsh advfirewall firewall add rule name="windows-mcp-%PORT%" dir=in action=allow protocol=TCP localport=%PORT%
 ) else (

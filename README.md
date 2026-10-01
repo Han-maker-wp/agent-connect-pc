@@ -86,19 +86,34 @@ python scripts/test_mcp_http_handshake.py http://<受控机IP>:8808/mcp --auth-k
 
 想先在本机体验（不接远程机）：双击 `run_local_server.bat`，客户端连 `http://127.0.0.1:8808/mcp` 即可（回环免认证）。
 
-### ③ 跨网络访问（不在同一局域网也能连——真正意义上的远程操控）
+### ③ 跨网络访问（对方零注册、零抄写——推荐流程）
 
-两台电脑各自上网就行，不用同一 WiFi、不用公网 IP：套一层 [Tailscale](https://tailscale.com) 组网（免费档 3 用户/100 设备），两台机器各领一个 `100.x.x.x` 虚拟 IP，任何网络环境下互通且 WireGuard 加密。
+两台电脑各自上网即可，不用同一 WiFi、不用公网 IP：套一层 [Tailscale](https://tailscale.com) 组网（免费 3 用户/100 设备，WireGuard 加密）。
 
-**受控端**（装完 ① 后）：
+核心思路：**账号、密钥、IP 全部由控制端提前备好**——对方用你生成的 Auth Key 加入**你的** tailnet（全程不注册、不登录、不需要邮箱），端口固定 8808，Bearer 密钥由你生成并内嵌；对方的 tailnet IP 在你的 `tailscale status` 里自动可见。**三行信息没有任何一行需要对方抄写。**
 
-1. **已内置**：`install_windows_mcp.bat` 结束前会询问「Set up Tailscale now?」——输 `y` 即自动安装（一次 UAC）并弹浏览器登录（GitHub / Google / 微软任一账号）；也可单独双击 `install_tailscale.bat` 补装，或第三个参数传 Auth Key 全自动：`install_windows_mcp.bat <port> <key> <tailscale-auth-key>`
-2. 脚本最后会打印这台机器的 **Tailscale IP（100.x.x.x）**——把它和 PORT、KEY 一起发给控制端
+**控制端（准备 3 步）**：
 
-**控制端**：安装 [Tailscale](https://tailscale.com/download) 并登录**同一个账号**，之后把所有命令里的 `<受控机IP>` 换成对方的 `100.x.x.x` 即可。
+1. 登录 [Tailscale 管理台](https://login.tailscale.com/admin/settings/keys) 生成一个 **Auth Key**（选单次使用 Single-use）
+2. 双击 `make_target_installer.bat <昵称> <auth-key>` → 自动生成 `target-<昵称>/` 文件夹：一键安装器（密钥已内嵌）+ `install_windows_mcp.bat` + 离线 exe；密钥同时存到本地 `my-targets/<昵称>.env`（勿外传）
+3. 把**整个文件夹**发给对方（微信/U盘均可）；然后双击 `connect_target.bat <昵称>` 挂机等待——对方装完的瞬间**自动发现新设备、自动验证连通**，并打印接好的 MCP 配置
 
-> 主安装脚本结束时若检测到已装 Tailscale，会把 100.x IP 直接打进结果面板，三行信息一次抄齐。
-> 进阶：在 [Tailscale 管理台](https://login.tailscale.com/admin/settings/keys)生成 Auth Key 后，`install_tailscale.bat <key>` 可免浏览器全自动登录。
+**对方（仅 2 个动作）**：
+
+1. 双击文件夹里的 `install_on_target.bat`
+2. 弹出的管理员提示点「是」（最多两次：Tailscale 安装 + 防火墙规则）
+
+**手动流程（备用）**：不用生成器也行——受控端跑 `install_windows_mcp.bat` 结尾输 `y` 配 Tailscale（浏览器登录，需对方有可登录账号；或用 `install_windows_mcp.bat <port> <key> <tailscale-auth-key>` 全自动免登录）；`install_tailscale.bat` 用于事后补装。
+
+**跨网络方案对比**（为什么默认选 Tailscale Auth Key）：
+
+| 方案 | 对方要注册/登录？ | 加密 | 国内可用 | 备注 |
+|---|---|---|---|---|
+| **Tailscale + Auth Key（本项目默认）** | ❌ 完全不需要 | WireGuard | ✅ | 对方加入你的网络；设备在控制台一键移除 |
+| ZeroTier + Network ID | ❌（你在控制台批准） | 加密 | ✅ | 同类替代 |
+| frp + 自有 VPS | ❌ | 取决于配置 | ✅ | 需要一台公网 VPS |
+| Cloudflare Tunnel | ❌（用你的 CF 账号） | TLS | ⚠️ 边缘节点国内不稳 | HTTP 类流量 |
+| 路由器端口映射 + DDNS | ❌ | 需自配 TLS | ✅ | 暴露公网端口，不推荐 |
 
 ## 安全
 

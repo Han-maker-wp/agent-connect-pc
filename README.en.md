@@ -84,19 +84,34 @@ Pre-verify the bridge chain with `python scripts/test_mcp_stdio_bridge.py http:/
 
 Want to try it locally first (no remote PC): double-click `run_local_server.bat` and point your client at `http://127.0.0.1:8808/mcp` (loopback needs no auth).
 
-### 3) Cross-network access (works from ANYWHERE — true remote control)
+### 3) Cross-network access (target signs up for NOTHING, copies NOTHING — recommended flow)
 
-The two PCs just need internet access — same Wi-Fi not required, no public IP needed: wrap both sides in a [Tailscale](https://tailscale.com) network (free tier: 3 users / 100 devices). Each machine gets a `100.x.x.x` virtual IP and they stay connected from any network, WireGuard-encrypted.
+The two PCs just need internet access — same Wi-Fi not required, no public IP needed: wrap both sides in a [Tailscale](https://tailscale.com) network (free tier: 3 users / 100 devices, WireGuard-encrypted).
 
-**Controlled PC** (after step 1):
+Key idea: **the account, the keys and the IP are all prepared on the controller side** — the target joins YOUR tailnet with an Auth Key you generated (no signup, no login, no e-mail on their side), the port is fixed at 8808, the Bearer key is generated on your side and baked into their installer; the target's tailnet IP shows up automatically in your `tailscale status`. None of the three values ever need to be typed or copied by the target person.
 
-1. **Built in**: `install_windows_mcp.bat` asks "Set up Tailscale now?" before finishing — answer `y` to auto-install (one UAC prompt) and sign in via the browser (any GitHub / Google / Microsoft account); or run the standalone `install_tailscale.bat` later, or pass an Auth Key as the 3rd arg for full auto: `install_windows_mcp.bat <port> <key> <tailscale-auth-key>`
-2. The script prints this machine's **Tailscale IP (100.x.x.x)** at the end — send it along with PORT and KEY
+**Controller (3 prep steps)**:
 
-**Controller PC**: install [Tailscale](https://tailscale.com/download) and sign in with the **same account**, then replace `<controlled-PC-IP>` with the `100.x.x.x` address everywhere.
+1. In the [Tailscale admin console](https://login.tailscale.com/admin/settings/keys) generate an **Auth Key** (single-use)
+2. Run `make_target_installer.bat <nickname> <auth-key>` → generates a `target-<nickname>/` folder: a one-click installer (keys baked in) + `install_windows_mcp.bat` + the offline exe; secrets saved locally to `my-targets/<nickname>.env` (never share that file)
+3. Send the **whole folder** to the target person (WeChat/USB); then run `connect_target.bat <nickname>` and leave it open — the moment they finish, it **auto-detects the new device, auto-verifies the connection** and prints the ready MCP config
 
-> The main install script auto-prints the 100.x IP in its final panel if Tailscale is already installed, so all three lines are on one screen.
-> Advanced: generate an Auth Key in the [Tailscale admin console](https://login.tailscale.com/admin/settings/keys) and run `install_tailscale.bat <key>` for a fully automatic, browser-free login.
+**Target person (2 actions only)**:
+
+1. Double-click `install_on_target.bat` inside the folder
+2. Click Yes on up to TWO admin prompts (Tailscale install + firewall rule)
+
+**Manual flow (fallback)**: skip the generator — run `install_windows_mcp.bat` on the target and answer `y` to the Tailscale prompt (browser login needs an account on their side; or use `install_windows_mcp.bat <port> <key> <tailscale-auth-key>` for a fully automatic join); `install_tailscale.bat` adds Tailscale later.
+
+**Alternatives compared** (why Tailscale Auth Key is the default):
+
+| Approach | Target signup/login? | Encryption | Works in CN | Notes |
+|---|---|---|---|---|
+| **Tailscale + Auth Key (default)** | ❌ none | WireGuard | ✅ | Target joins your network; remove devices in one click |
+| ZeroTier + Network ID | ❌ (you approve in console) | Encrypted | ✅ | Similar alternative |
+| frp + your own VPS | ❌ | Depends on config | ✅ | Needs a public VPS |
+| Cloudflare Tunnel | ❌ (your CF account) | TLS | ⚠️ CN edge unstable | HTTP-ish traffic |
+| Router port-forward + DDNS | ❌ | DIY TLS | ✅ | Exposes a public port — not recommended |
 
 ## Security
 

@@ -8,3 +8,5 @@ dist/
 .build-venv/
 *.spec
 windows-mcp-server.exe
+my-targets/
+target-*/
