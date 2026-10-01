@@ -115,7 +115,35 @@ Key idea: **the account, the keys and the IP are all prepared on the controller 
 | Cloudflare Tunnel | ❌ (your CF account) | TLS | ⚠️ CN edge unstable | HTTP-ish traffic |
 | Router port-forward + DDNS | ❌ | DIY TLS | ✅ | Exposes a public port — not recommended |
 
-## Security
+
+## Appendix: Tailscale MCP (bundled)
+
+The device-lookup/verify steps in section 3 can also be done without hand-running
+CLI commands - wire [tailscale-mcp/server.py](tailscale-mcp/server.py) (zero
+dependencies, stdlib only) into your agent and it completes the loop
+conversationally: `ts_status` lists peers and their 100.x.x.x IPs, `ts_ping`
+verifies the tunnel, then it updates the MCP config itself:
+
+| Tool | Purpose |
+|---|---|
+| `ts_status` | mesh state + local 100.x IP + **full peer list** (the deploy-loop workhorse) |
+| `ts_ping` / `ts_netcheck` | tunnel connectivity / NAT type + DERP relay probe (NAT diagnosis) |
+| `ts_up` / `ts_down` | mesh on/off (state change; may need admin/UAC on Windows) |
+| `ts_ip` / `ts_version` | local Tailscale IPv4 / version |
+
+If the CLI is not installed, every tool returns an install hint instead of a
+cryptic error; the CLI is auto-fallback-resolved to `C:\Program Files\Tailscale\`;
+a restarting tailscaled gets enough retry time to surface its own error.
+
+```json
+"tailscale": {
+  "type": "stdio",
+  "command": "python",
+  "args": ["-u", "<repo-path>/tailscale-mcp/server.py"]
+}
+```
+
+
 
 - **Auth is mandatory by default**: windows-mcp refuses to bind non-loopback addresses without credentials; the deploy script always generates a random Bearer KEY
 - **Least privilege (optional)**: `serve` supports `--ip-allowlist "192.168.1.0/24"`, `--exclude-tools "PowerShell,Registry"` (drop the arbitrary-command tools), and TLS (`--ssl-certfile/--ssl-keyfile`) — append them to the autostart command line yourself

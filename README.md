@@ -117,6 +117,27 @@ python scripts/test_mcp_http_handshake.py http://<受控机IP>:8808/mcp --auth-k
 | Cloudflare Tunnel | ❌（用你的 CF 账号） | TLS | ⚠️ 边缘节点国内不稳 | HTTP 类流量 |
 | 路由器端口映射 + DDNS | ❌ | 需自配 TLS | ✅ | 暴露公网端口，不推荐 |
 
+## 附：Tailscale MCP（本仓库附带）
+
+上面 ③ 的查设备/验证步骤也可以不用手动命令——把 [tailscale-mcp/server.py](tailscale-mcp/server.py)（零依赖，纯标准库）配进 agent，它就能对话式完成「`ts_status` 查 peers 拿到对方 100.x IP → `ts_ping` 验证隧道 → 改 MCP 配置」整个闭环：
+
+| 工具 | 作用 |
+|---|---|
+| `ts_status` | 组网状态 + 本机 100.x IP + **全部 peers 清单**（部署闭环的主力） |
+| `ts_ping` / `ts_netcheck` | 隧道连通性 / NAT 类型与 DERP 中继探测（打洞失败诊断） |
+| `ts_up` / `ts_down` | 组网开关（状态变更；Windows 上可能要管理员/UAC） |
+| `ts_ip` / `ts_version` | 本机 Tailscale IPv4 / 版本 |
+
+CLI 未安装时所有工具返回安装指引而不是报错；CLI 不在 PATH 时自动回退 `C:\Program Files\Tailscale\`；tailscaled 重启/无后端时 status 给足重试时间让真实错误浮出来。
+
+```json
+"tailscale": {
+  "type": "stdio",
+  "command": "python",
+  "args": ["-u", "<仓库路径>/tailscale-mcp/server.py"]
+}
+```
+
 ## 安全
 
 - **认证默认强制**：windows-mcp 绑定非回环地址时拒绝无认证运行；部署脚本总是生成随机 Bearer KEY
