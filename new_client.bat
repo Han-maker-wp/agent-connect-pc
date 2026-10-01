@@ -18,7 +18,8 @@ if "%NAME%"=="" exit /b 1
 
 set "TSKEY="
 for /f "usebackq delims=" %%i in (`python "%~dp0scripts\tailscale_new_authkey.py" --name "%NAME%"`) do set "TSKEY=%%i"
-if "%TSKEY:~0,10%"=="tskey-auth-" goto have_key
+if "%TSKEY:~0,11%"=="tskey-auth-" goto have_key
+echo %TSKEY%| findstr /b /c:"tskey-auth-" >nul && goto have_key
 echo.
 echo [FALLBACK] API key generation failed (see message above).
 echo            Paste a manually generated Auth Key instead

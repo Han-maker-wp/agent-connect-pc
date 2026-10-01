@@ -74,8 +74,8 @@ def main():
                   file=sys.stderr)
         sys.exit(1)
     print(f"[OK] Auth Key 已生成 (id={data.get('id')}, 单次, {args.expiry_days} 天, "
-          f"描述: pc-interconnect {args.name})")
-    print(data["key"])
+          f"描述: pc-interconnect {args.name})", file=sys.stderr)
+    print(data["key"])  # stdout 最后一行 = key（纯 ASCII，供 bat 的 for /f 捕获）
 
 
 if __name__ == "__main__":
