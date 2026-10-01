@@ -3,3 +3,8 @@ __pycache__/
 *.log
 .DS_Store
 Thumbs.db
+build/
+dist/
+.build-venv/
+*.spec
+windows-mcp-server.exe

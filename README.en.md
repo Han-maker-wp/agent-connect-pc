@@ -32,14 +32,15 @@ Across networks, wrap with Tailscale (WireGuard-encrypted, free) — no public I
 
 ### 1) Controlled PC (the one being driven)
 
-Copy `install_windows_mcp.bat` over and double-click it (**no admin rights needed at all**; only the firewall step wants an admin terminal once). The script will:
+**Option A — offline install (recommended: zero network, zero dependencies)**
 
-1. Detect and install uv (winget)
-2. Pre-download `windows-mcp==0.8.7` + Python 3.14 (first run: 1–3 minutes)
-3. Add a per-user autostart entry (HKCU Run, with Bearer auth, bound to `0.0.0.0`) and start the server immediately
-4. Add a firewall rule
+1. From the [Releases](https://github.com/Han-maker-wp/pc-interconnect/releases) page download `windows-mcp-server.exe` (~56 MB single file with an embedded Python runtime) and put it in the **same folder** as `install_windows_mcp.bat` (USB stick / file transfer, whatever works)
+2. On the controlled PC double-click `install_windows_mcp.bat` — **no internet, no uv/Python install, no admin** (only the firewall step wants an admin terminal once)
+3. Note the PORT and AUTH KEY printed on screen
 
-Then **note the PORT and AUTH KEY printed on screen** and hand them to the controller PC.
+**Option B — online install (when you only have the bat)**
+
+The script installs uv via winget, then downloads windows-mcp 0.8.7 + Python 3.14 through the Tsinghua PyPI mirror and a GitHub acceleration mirror (works from China without a proxy, first run 1–3 min), adds the per-user autostart entry (Bearer auth, bound to `0.0.0.0`), starts the server immediately, and adds the firewall rule.
 
 > After every login a **minimized console window appears — that IS the server**. Closing it stops remote control (intentionally visible, so the machine owner stays in control at all times).
 
@@ -95,7 +96,7 @@ Want to try it locally first (no remote PC): double-click `run_local_server.bat`
 
 - **bat flashes/crashes with mojibake**: the bats in this repo are pure ASCII (safe on any codepage). If you edited one and got `'xxx' is not recognized as an internal or external command`, your bat was saved as UTF-8 with non-ASCII text — cmd parses batch files in the ANSI codepage (GBK on Chinese Windows). Keep bats pure ASCII
 - **What is that minimized console window after login**: the windows-mcp server itself (launched by the autostart entry). Keep it open = remote control allowed; close it = control stops immediately. Run `uninstall_windows_mcp.bat` to remove it entirely
-- **Slow downloads**: the script bypasses proxies for PyPI (`NO_PROXY`); in China you can point uv at a mirror via `%APPDATA%\uv\uv.toml` → `[[index]] url = "https://pypi.tuna.tsinghua.edu.cn/simple"`, `default = true`
+- **Online install stuck/slow on downloads**: since v0.2.0 the bat routes PyPI through the Tsinghua mirror and the Python runtime download through a GitHub acceleration mirror (works from China without a proxy); but the most reliable path is **Option A's offline exe**, which skips downloads entirely
 - **Agent goes blind when the PC is locked** (black screenshots / clicks do nothing): Windows GUI automation needs an active desktop session. Set the controlled PC to "never turn off display + auto logon"; note that an RDP disconnect locks the session
 - **UAC elevation prompts**: the agent cannot click the secure desktop — keep elevation steps human-confirmed
 - **Clash/proxy users**: if the agent cannot reach the controlled PC, add its IP to the `NO_PROXY` env of the MCP client config (don't touch system proxy variables)
