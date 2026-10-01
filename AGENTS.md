@@ -33,8 +33,8 @@
 
 控制端依次执行：
 
-1. **生成 Auth Key**：让用户在 https://login.tailscale.com/admin/settings/keys 生成 **Single-use** key（每个客户一个，用完即废）。agent 可以浏览器自动化代做：管理台 Keys 页 → Generate auth key → 勾选默认（Reusable=off）→ Generate → 点复制按钮 → 剪贴板读取并正则校验 `^tskey-auth-`。
-2. **生成客户文件夹**：`make_target_installer.bat <昵称> <auth-key>`（昵称限 `[a-zA-Z0-9_-]`）。产出 `target-<昵称>/`（一键安装器 + 主脚本 + 离线 exe + fix_tailscale.bat，密钥全内嵌），密钥同时存档 `my-targets/<昵称>.env`。
+1. **一条命令生成一切**：`new_client.bat <昵称>`（昵称限 `[a-zA-Z0-9_-]`）——自动经 Tailscale API 生成单次 Auth Key 并生成 `target-<昵称>/`（一键安装器 + 主脚本 + 离线 exe + fix_tailscale.bat，密钥全内嵌），密钥存档 `my-targets/<昵称>.env`。
+   **前置一次性配置**：管理 token 存 `my-targets/tailscale-api.env`（一行 `TSMGMT_TOKEN=tskey-api-xxxxx`），见 scripts/tailscale_new_authkey.py 头注释；token 90 天到期时命令会明确报错并指引刷新。API 不可用时自动降级为提示粘贴手动生成的 key（管理台 Single-use key；agent 可浏览器自动化代做：放大区域截图精读 token/key，复制按钮在该弹窗不可靠）。
 3. **交付 + 挂机**：让用户把**整个文件夹**发给客户（微信/U盘），然后后台运行：
    `python scripts/auto_connect_target.py --name <昵称> --timeout 3600`
    （exit 0 = 连通；exit 2 = 超时，按输出提示排查；脚本会自动发现 tailnet 新设备并验证握手，PASS 时把客户 IP 追加进 env）

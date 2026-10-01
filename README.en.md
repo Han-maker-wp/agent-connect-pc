@@ -92,10 +92,10 @@ The two PCs just need internet access — same Wi-Fi not required, no public IP 
 
 Key idea: **the account, the keys and the IP are all prepared on the controller side** — the target joins YOUR tailnet with an Auth Key you generated (no signup, no login, no e-mail on their side), the port is fixed at 8808, the Bearer key is generated on your side and baked into their installer; the target's tailnet IP shows up automatically in your `tailscale status`. None of the three values ever need to be typed or copied by the target person.
 
-**Controller (3 prep steps)**:
+**Controller (3 steps)**:
 
-1. In the [Tailscale admin console](https://login.tailscale.com/admin/settings/keys) generate an **Auth Key** (single-use)
-2. Run `make_target_installer.bat <nickname> <auth-key>` → generates a `target-<nickname>/` folder: a one-click installer (keys baked in) + `install_windows_mcp.bat` + the offline exe; secrets saved locally to `my-targets/<nickname>.env` (never share that file)
+1. **One-time setup** (~2 min): in the [Tailscale admin console](https://login.tailscale.com/admin/settings/keys) click "Generate access token..." → save the token to `my-targets/tailscale-api.env` (one line: `TSMGMT_TOKEN=tskey-api-xxxxx`; valid 90 days, commands print clear refresh instructions when it expires)
+2. **One command**: `new_client.bat <nickname>` → generates a single-use Auth Key via the API + builds the `target-<nickname>/` folder (one-click installer + main script + offline exe + self-repair script, all keys baked in; secrets archived to `my-targets/<nickname>.env`, never share that file)
 3. Send the **whole folder** to the target person (WeChat/USB); then run `connect_target.bat <nickname>` and leave it open — the moment they finish, it **auto-detects the new device, auto-verifies the connection** and prints the ready MCP config
 
 **Target person (2 actions only)**:

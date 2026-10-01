@@ -94,10 +94,10 @@ python scripts/test_mcp_http_handshake.py http://<受控机IP>:8808/mcp --auth-k
 
 核心思路：**账号、密钥、IP 全部由控制端提前备好**——对方用你生成的 Auth Key 加入**你的** tailnet（全程不注册、不登录、不需要邮箱），端口固定 8808，Bearer 密钥由你生成并内嵌；对方的 tailnet IP 在你的 `tailscale status` 里自动可见。**三行信息没有任何一行需要对方抄写。**
 
-**控制端（准备 3 步）**：
+**控制端（3 步）**：
 
-1. 登录 [Tailscale 管理台](https://login.tailscale.com/admin/settings/keys) 生成一个 **Auth Key**（选单次使用 Single-use）
-2. 双击 `make_target_installer.bat <昵称> <auth-key>` → 自动生成 `target-<昵称>/` 文件夹：一键安装器（密钥已内嵌）+ `install_windows_mcp.bat` + 离线 exe；密钥同时存到本地 `my-targets/<昵称>.env`（勿外传）
+1. **一次性配置**（约 2 分钟）：[Tailscale 管理台](https://login.tailscale.com/admin/settings/keys) 点 "Generate access token..." → 把 token 存到 `my-targets/tailscale-api.env`（一行：`TSMGMT_TOKEN=tskey-api-xxxxx`，90 天有效，到期时命令会明确报错指引刷新）
+2. **一条命令**：`new_client.bat <昵称>` → 自动经 API 生成单次 Auth Key + `target-<昵称>/` 文件夹（一键安装器 + 主脚本 + 离线 exe + 自修复脚本，密钥全内嵌；密钥存档 `my-targets/<昵称>.env`，勿外传）
 3. 把**整个文件夹**发给对方（微信/U盘均可）；然后双击 `connect_target.bat <昵称>` 挂机等待——对方装完的瞬间**自动发现新设备、自动验证连通**，并打印接好的 MCP 配置
 
 **对方（仅 2 个动作）**：
