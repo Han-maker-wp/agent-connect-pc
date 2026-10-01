@@ -86,6 +86,20 @@ python scripts/test_mcp_http_handshake.py http://<受控机IP>:8808/mcp --auth-k
 
 想先在本机体验（不接远程机）：双击 `run_local_server.bat`，客户端连 `http://127.0.0.1:8808/mcp` 即可（回环免认证）。
 
+### ③ 跨网络访问（不在同一局域网也能连——真正意义上的远程操控）
+
+两台电脑各自上网就行，不用同一 WiFi、不用公网 IP：套一层 [Tailscale](https://tailscale.com) 组网（免费档 3 用户/100 设备），两台机器各领一个 `100.x.x.x` 虚拟 IP，任何网络环境下互通且 WireGuard 加密。
+
+**受控端**（装完 ① 后）：
+
+1. 双击 `install_tailscale.bat` → 自动安装（一次 UAC 弹窗）→ 弹浏览器登录（GitHub / Google / 微软任一账号）
+2. 脚本最后会打印这台机器的 **Tailscale IP（100.x.x.x）**——把它和 PORT、KEY 一起发给控制端
+
+**控制端**：安装 [Tailscale](https://tailscale.com/download) 并登录**同一个账号**，之后把所有命令里的 `<受控机IP>` 换成对方的 `100.x.x.x` 即可。
+
+> 主安装脚本结束时若检测到已装 Tailscale，会把 100.x IP 直接打进结果面板，三行信息一次抄齐。
+> 进阶：在 [Tailscale 管理台](https://login.tailscale.com/admin/settings/keys)生成 Auth Key 后，`install_tailscale.bat <key>` 可免浏览器全自动登录。
+
 ## 安全
 
 - **认证默认强制**：windows-mcp 绑定非回环地址时拒绝无认证运行；部署脚本总是生成随机 Bearer KEY

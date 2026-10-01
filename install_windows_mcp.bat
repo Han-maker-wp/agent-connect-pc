@@ -154,12 +154,24 @@ if errorlevel 1 (
     echo   Firewall rule added. Rollback: netsh advfirewall firewall delete rule name="windows-mcp-%PORT%"
 )
 
+echo Tailscale check (cross-network access) ...
+set "PATH=%PATH%;C:\Program Files\Tailscale"
+set "TSIP="
+for /f "tokens=*" %%i in ('tailscale ip -4 2^>nul') do if not defined TSIP set "TSIP=%%i"
+if defined TSIP (
+    echo   Tailscale detected - this PC is reachable from ANYWHERE at %TSIP%
+) else (
+    echo   Same-LAN only for now. For access from ANYWHERE also run:
+    echo     install_tailscale.bat
+)
+
 timeout /t 3 >nul
 echo.
 echo ============================================================
-echo  Done! Give these TWO lines to the controller PC:
+echo  Done! Give these lines to the controller PC:
 echo    PORT: %PORT%
 echo    AUTH KEY: %KEY%
+if defined TSIP echo    Tailscale IP: %TSIP%   ^(works from any network^)
 echo  Verify from the controller PC:
 echo    python scripts/test_mcp_http_handshake.py http://THIS_PC_IP:%PORT%/mcp --auth-key %KEY%
 echo  Notes:

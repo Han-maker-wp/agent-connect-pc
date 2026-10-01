@@ -84,6 +84,20 @@ Pre-verify the bridge chain with `python scripts/test_mcp_stdio_bridge.py http:/
 
 Want to try it locally first (no remote PC): double-click `run_local_server.bat` and point your client at `http://127.0.0.1:8808/mcp` (loopback needs no auth).
 
+### 3) Cross-network access (works from ANYWHERE — true remote control)
+
+The two PCs just need internet access — same Wi-Fi not required, no public IP needed: wrap both sides in a [Tailscale](https://tailscale.com) network (free tier: 3 users / 100 devices). Each machine gets a `100.x.x.x` virtual IP and they stay connected from any network, WireGuard-encrypted.
+
+**Controlled PC** (after step 1):
+
+1. Double-click `install_tailscale.bat` → auto-install (one UAC prompt) → a browser opens for sign-in (any GitHub / Google / Microsoft account)
+2. The script prints this machine's **Tailscale IP (100.x.x.x)** at the end — send it along with PORT and KEY
+
+**Controller PC**: install [Tailscale](https://tailscale.com/download) and sign in with the **same account**, then replace `<controlled-PC-IP>` with the `100.x.x.x` address everywhere.
+
+> The main install script auto-prints the 100.x IP in its final panel if Tailscale is already installed, so all three lines are on one screen.
+> Advanced: generate an Auth Key in the [Tailscale admin console](https://login.tailscale.com/admin/settings/keys) and run `install_tailscale.bat <key>` for a fully automatic, browser-free login.
+
 ## Security
 
 - **Auth is mandatory by default**: windows-mcp refuses to bind non-loopback addresses without credentials; the deploy script always generates a random Bearer KEY
