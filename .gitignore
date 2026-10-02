@@ -6,9 +6,10 @@ Thumbs.db
 build/
 dist/
 .build-venv/
-*.spec
-windows-mcp-server.exe
+release-staging/
+release-assets/
+*.exe
+*.zip
 my-targets/
 target-*/
-
-*.zip
+NUL

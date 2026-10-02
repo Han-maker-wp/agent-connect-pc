@@ -174,7 +174,7 @@ if "%TSKEY%"=="" (
     set "TSANS=y"
 )
 if /i not "!TSANS!"=="y" (
-    echo   Skipped. Run install_tailscale.bat later for cross-network access.
+    echo   Skipped. Run Tailscale setup from the controller GUI or CLI later.
     goto ts_done
 )
 if not exist "C:\Program Files\Tailscale\tailscale.exe" (
@@ -209,7 +209,8 @@ echo    PORT: %PORT%
 echo    AUTH KEY: %KEY%
 if defined TSIP echo    Tailscale IP: %TSIP%   ^(works from any network^)
 echo  Verify from the controller PC:
-echo    python scripts/test_mcp_http_handshake.py http://THIS_PC_IP:%PORT%/mcp --auth-key %KEY%
+echo    agent-connect-cli.exe ping ^<TAILSCALE_IP^>
+echo    agent-connect-cli.exe snippets ^<target-name^>
 echo  Notes:
 echo    - The minimized "windows-mcp server" console IS the server;
 echo      closing it stops remote control (by design, stays visible).

@@ -4,7 +4,7 @@ Lets an AI agent manage the machine's Tailscale VPN conversationally
 instead of hand-running CLI commands - the missing piece of the
 PC Interconnect deployment loop: ts_status finds a newly deployed
 peer's 100.x.x.x IP, ts_ping verifies the tunnel, then the agent
-points the pc-interconnect MCP config at that IP itself.
+points the AgentConnect-PC MCP config at that IP itself.
 
 Protocol: newline-delimited JSON-RPC 2.0 over stdio (MCP stdio transport).
 Python stdlib only (same style as this project's other MCP servers).
@@ -22,7 +22,7 @@ Tools:
 
 If the CLI is not installed, every tool returns an install hint instead
 of failing cryptically. State-changing tools are also scriptable on a
-REMOTE machine through pc-interconnect's PowerShell tool.
+REMOTE machine through AgentConnect-PC's remote-control tool.
 """
 import json
 import os
@@ -92,7 +92,7 @@ def tool_status():
                  "tailscale_ips": self_d.get("TailscaleIPs") or [],
                  "online": self_d.get("Online")},
         "peers": peers,
-        "hint": ("deploy loop: point the pc-interconnect MCP config at a "
+        "hint": ("deploy loop: point the AgentConnect-PC MCP config at a "
                  "peer's 100.x.x.x ip, then ts_ping it to verify"),
     }
     return [{"type": "text",
@@ -152,7 +152,7 @@ TOOLS = {
         "description": (
             "Tailscale state: installed/running, this device's name and "
             "100.x.x.x IPs, and all peers (name, IP, online, OS). The "
-            "PC-Interconnect deploy loop workhorse: find the newly deployed "
+            "AgentConnect-PC deploy loop workhorse: find the newly deployed "
             "peer's Tailscale IP here, then ts_ping it."),
         "inputSchema": {"type": "object", "properties": {}},
     },
