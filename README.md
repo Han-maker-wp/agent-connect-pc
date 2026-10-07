@@ -152,7 +152,59 @@ stdio-only 客户端使用 `mcp-remote` 桥接。ZCode 示例：
 
 仓库还包含 `tailscale-mcp/server.py`：它把 `ts_status`、`ts_ping`、`ts_netcheck`、`ts_up`、`ts_down`、`ts_ip`、`ts_version` 暴露为 MCP 工具。若 Agent 需要自己诊断网络，可以把它作为 stdio MCP server 加入。
 
-## 7. 从源码构建
+## 7. 进阶：把服务器变成控制端（反向场景）
+
+AgentConnect 不限定"哪台电脑跑 agent"。只要能进入同一个 Tailscale tailnet 并作为 MCP 客户端发 HTTP 请求，**云服务器/VPS 同样可以作为控制端**，操控你的本地 Windows 电脑——适合让 7×24 在线的服务器 agent 在你不在时给本地 PC 跑长任务（下载、整理、GUI 自动化）。
+
+| 角色 | 本场景 |
+|---|---|
+| Agent 大脑 + 控制端 | Linux / Windows 服务器 |
+| 受控端 | 你的本地 Windows 电脑（走标准受控端流程，见第 5 节） |
+
+### 服务器（Linux）三步
+
+1. 安装 Tailscale 并加入 tailnet：
+
+   ```bash
+   curl -fsSL https://tailscale.com/install.sh | sh
+   tailscale up --authkey tskey-auth-xxxxx      # single-use key，或去掉参数走交互式登录
+   ```
+
+2. （可选）从源码使用控制端 CLI——纯标准库，headless 服务器直接可用：
+
+   ```bash
+   git clone https://github.com/Han-maker-wp/agent-connect-pc.git
+   cd agent-connect-pc
+   python -m agent_connect.cli status           # 需要 Python 3.11+，tailscale 已在 PATH
+   ```
+
+   Windows 专用的 CLI exe 和 Tkinter GUI 不适用于 Linux；无显示环境的服务器用 CLI 即可——agent 本身就是管理界面。
+
+3. 让本地 PC 变成受控端，并把服务器的 agent 指向它：
+   - 本地 PC 跑 Release 的 `install_windows_mcp.bat`（或在服务器 CLI 里 `new` 一个目标包发给自己），记下它的 100.x IP 和 Bearer；
+   - 服务器上 agent 的 MCP 配置指向 `http://<本地100.x IP>:8808/mcp` + `Authorization: Bearer <KEY>`；stdio-only 客户端走 mcp-remote；服务器有代理时把 `100.64.0.0/10` 或目标 IP 加进 NO_PROXY。
+
+验收（在服务器上执行）：
+
+```bash
+tailscale ping <本地100.x IP>
+curl -sS -X POST http://<本地100.x IP>:8808/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Authorization: Bearer <KEY>" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}'
+```
+
+返回 HTTP 200 即通。
+
+### 注意事项
+
+- **本地 PC 保持可唤醒**：不睡眠、自启项生效、最小化服务窗口别关；合盖/熄屏后 agent 会"失明"（GUI 工具全失效）。
+- **受限沙箱服务器**：Tailscale 打不通 UDP 时自动降级 DERP（TCP 443）；若平台完全禁止装 VPN，可改用 frp/自建隧道只暴露 8808 端口，但加密与认证要自己负责。
+- **信任反转**：Bearer key 存在服务器上——拿到服务器权限就等于拿到你本地 PC 的完全控制权。加固 SSH、建议用 Tailscale ACL 只允许"服务器 → 本地PC:8808"、密钥疑似泄露立即轮换。
+- 禁支付、删除先确认、系统设置留痕等红线，对服务器上的 agent **同样生效**。
+
+## 8. 从源码构建
 
 需要 Windows、Python 3.14 和 PyInstaller 构建环境。推荐使用仓库现有的 `.build-venv`，或新建等价环境：
 
@@ -171,7 +223,7 @@ release-staging/agent-connect-gui-windows-x64.zip
 
 `packaging/*.spec` 是可审计的构建配置；GUI 使用 Windows 自带 Tkinter，不引入 Qt/Electron。
 
-## 8. 项目结构
+## 9. 项目结构
 
 | 路径 | 作用 |
 |---|---|
@@ -186,7 +238,7 @@ release-staging/agent-connect-gui-windows-x64.zip
 | `AGENTS.md` | 给 AI Agent 阅读的完整运维手册 |
 | `my-targets/` | 本地密钥和目标存档，永远不要提交 |
 
-## 9. 安全与故障排查
+## 10. 安全与故障排查
 
 - `tailscale status` 看不到目标：先确认目标机已运行安装器并加入同一 tailnet。
 - `tailscale ping` 不通：目标可能关机/睡眠；再检查 Tailscale 和防火墙。
@@ -196,7 +248,7 @@ release-staging/agent-connect-gui-windows-x64.zip
 - 锁屏/RDP 断开会让 GUI 自动化失明；这是受控端 Windows 桌面会话限制。
 - 不要把 `my-targets/`、`target-*/`、zip、Auth Key、Bearer、管理 token 提交到 Git。
 
-## 10. 给 Agent 的复现指令
+## 11. 给 Agent 的复现指令
 
 如果你是一个正在阅读本项目的 AI Agent，请按以下顺序：
 

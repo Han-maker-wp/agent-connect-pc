@@ -119,7 +119,27 @@ Authorization: Bearer <target-env-BEARER>
 - ZCode uses the existing `mcp-remote` pattern in its user config.
 - Do not hand-type Bearer values when `agent-connect snippets` can print a correct snippet.
 
-## 7. Build and release model
+## 7. Topology variant: server as controller (Linux/Windows Server)
+
+The controller is simply "whatever runs the agent and can reach the target over the tailnet". A cloud server/VPS is a valid controller for operating the user's **own local Windows PC** — typical case: a 24/7 server agent runs long tasks on the user's desktop while they are away.
+
+Requirements and steps (Linux):
+
+1. Install Tailscale and join the controller's tailnet: `tailscale up --authkey <single-use key>` (or interactive login).
+2. Optional management CLI from source: `python -m agent_connect.cli status|new|wait|snippets` (stdlib only, works headless; needs `tailscale` on PATH). The Windows exe assets and the Tkinter GUI do **not** apply to Linux.
+3. Set up the local PC as a standard controlled target (offline exe + installer, or `new` a bundle and send it to the user themselves).
+4. Point the server agent's MCP client at `http://<target-100.x>:8808/mcp` with the Bearer header; add `100.64.0.0/10` (or the target IP) to NO_PROXY if the server uses proxies.
+5. Verify: `tailscale ping <target>` then a raw MCP `initialize` returning HTTP 200 (copy-paste curl in README section 7).
+
+Caveats an agent must know:
+
+- The target PC must stay awake with the service autostart alive; sleep/lid-close/RDP-disconnect blinds GUI tools — this is a machine state issue, not a service failure.
+- Sandboxed platforms that forbid VPN installs: Tailscale degrades to DERP relays over TCP 443; if that is also blocked, fall back to frp/own tunnel for port 8808 and manage encryption/auth yourself.
+- **Trust inversion**: the Bearer key lives on the server. Server compromise equals full control of the target PC — harden SSH, prefer a Tailscale ACL limiting the server to target:8808, rotate keys on any suspicion.
+- All project red lines (no payments, deletion confirmation, settings logging, no secret exfiltration) apply to server-side agents unchanged.
+- When documenting or scripting this topology, treat the server as the controller in every workflow above; nothing else in sections 4-5 changes.
+
+## 8. Build and release model
 
 The public product name is **AgentConnect-PC**. The GitHub repository is `agent-connect-pc` after the release rename.
 
@@ -151,7 +171,7 @@ Before release:
 6. verify the GitHub tag/release contains exactly the two controller zips and release notes;
 7. never upload `my-targets`, target zip folders, `.build-venv`, or PyInstaller build caches.
 
-## 8. Cleanup policy
+## 9. Cleanup policy
 
 Safe to remove after a successful archive and release:
 
@@ -166,7 +186,7 @@ Safe to remove after a successful archive and release:
 
 Keep source code, packaging specs, build scripts, the controlled installer, Tailscale MCP, README files, LICENSE, and this manual.
 
-## 9. Security and operations
+## 10. Security and operations
 
 - `tailscale up/down` may require Windows UAC; an AI agent cannot click the secure desktop. Ask the owner to confirm.
 - The minimized target console is the visible stop control. Closing it stops remote control.
@@ -175,7 +195,7 @@ Keep source code, packaging specs, build scripts, the controlled installer, Tail
 - If a secret ever enters Git history, remove it with a reviewed history rewrite and force-with-lease, then rotate the secret immediately.
 - Before changing a firewall or system setting, record the old state and the rollback command.
 
-## 10. Agent reproduction checklist
+## 11. Agent reproduction checklist
 
 When an agent is asked to reproduce this project from a fresh clone, it should:
 

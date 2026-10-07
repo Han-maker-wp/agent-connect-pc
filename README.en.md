@@ -146,7 +146,59 @@ For stdio-only clients, use `mcp-remote`. Example:
 
 The repository also contains `tailscale-mcp/server.py`, exposing `ts_status`, `ts_ping`, `ts_netcheck`, `ts_up`, `ts_down`, `ts_ip`, and `ts_version` as MCP tools.
 
-## 7. Build from source
+## 7. Advanced: a server as the controller (reverse scenario)
+
+AgentConnect does not care *which* machine runs the agent. Anything that can join the same Tailscale tailnet and speak MCP over HTTP can be the controller — **a cloud server/VPS works fine** and can drive your local Windows PC. Typical use: a 24/7 server agent runs long tasks on your desktop (downloads, file organizing, GUI automation) while you are away.
+
+| Role | In this scenario |
+|---|---|
+| Agent brain + controller | Linux / Windows server |
+| Controlled PC | your local Windows PC (standard controlled-side flow, section 5) |
+
+### Three steps on a Linux server
+
+1. Install Tailscale and join the tailnet:
+
+   ```bash
+   curl -fsSL https://tailscale.com/install.sh | sh
+   tailscale up --authkey tskey-auth-xxxxx      # single-use key, or omit for interactive login
+   ```
+
+2. (Optional) use the controller CLI from source — stdlib only, headless-friendly:
+
+   ```bash
+   git clone https://github.com/Han-maker-wp/agent-connect-pc.git
+   cd agent-connect-pc
+   python -m agent_connect.cli status           # Python 3.11+, tailscale on PATH
+   ```
+
+   The Windows CLI exe and the Tkinter GUI do not apply to Linux; on a headless server just use the CLI — the agent itself is the management interface.
+
+3. Make the local PC a controlled target and point the server agent at it:
+   - run Release's `install_windows_mcp.bat` on the local PC (or `new` a bundle on the server and send it to yourself), note its 100.x IP and Bearer;
+   - configure the server agent's MCP client with `http://<local-100.x>:8808/mcp` + `Authorization: Bearer <KEY>`; stdio-only clients use `mcp-remote`; if the server has proxies, add `100.64.0.0/10` (or the target IP) to NO_PROXY.
+
+Verify from the server:
+
+```bash
+tailscale ping <local-100.x IP>
+curl -sS -X POST http://<local-100.x IP>:8808/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Authorization: Bearer <KEY>" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}'
+```
+
+HTTP 200 means the loop is closed.
+
+### Caveats
+
+- **Keep the local PC awake**: no sleep, autostart entry active, minimized service window open; a locked/asleep PC blinds the GUI tools.
+- **Restricted sandbox servers**: Tailscale degrades to DERP relays (TCP 443) when UDP is blocked; if the platform forbids VPNs entirely, fall back to frp/your own tunnel for port 8808 and manage encryption/auth yourself.
+- **Trust inversion**: the Bearer key lives on the server — server compromise equals full control of your PC. Harden SSH, consider a Tailscale ACL allowing only server → target:8808, and rotate keys on any suspicion.
+- The project red lines (no payments, deletion confirmation, settings logging) apply to server-side agents **just the same**.
+
+## 8. Build from source
 
 On Windows, use Python 3.14 and a PyInstaller environment:
 
@@ -165,7 +217,7 @@ release-staging/agent-connect-gui-windows-x64.zip
 
 `packaging/*.spec` is the auditable build configuration. The GUI uses Windows' built-in Tkinter; it does not add Qt or Electron.
 
-## 8. Project map
+## 9. Project map
 
 | Path | Role |
 |---|---|
@@ -180,7 +232,7 @@ release-staging/agent-connect-gui-windows-x64.zip
 | `AGENTS.md` | complete operations manual for AI agents |
 | `my-targets/` | local secrets and target archives; never commit |
 
-## 9. Security and troubleshooting
+## 10. Security and troubleshooting
 
 - Target missing from `tailscale status`: make sure the target ran its installer and joined the same tailnet.
 - `tailscale ping` fails: the target may be powered off/asleep; then inspect Tailscale and the firewall.
@@ -190,7 +242,7 @@ release-staging/agent-connect-gui-windows-x64.zip
 - Lock screen/RDP disconnects can blind Windows GUI automation because the desktop session is inactive.
 - Never commit `my-targets/`, `target-*/`, zips, Auth Keys, Bearer keys, or management tokens.
 
-## 10. Reproduction instructions for AI agents
+## 11. Reproduction instructions for AI agents
 
 If you are an AI Agent reading this project:
 
